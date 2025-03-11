@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/abranshbaliyan/SonicSherlock/AudioProcessing/cpp/src",
+      "program": "/Users/abranshbaliyan/SonicSherlock/AudioProcessing/cpp/src/build/Debug/outDebug"
+    }
+  ]
+}
