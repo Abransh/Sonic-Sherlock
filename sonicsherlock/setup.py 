@@ -1,0 +1,92 @@
+from setuptools import setup, find_packages, Extension
+from setuptools.command.build_ext import build_ext
+import sys
+import os
+import subprocess
+
+# Find the pybind11 include directory
+try:
+    import pybind11
+    pybind11_include = pybind11.get_include()
+except ImportError:
+    print("Pybind11 not found. Installing...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "pybind11"])
+    import pybind11
+    pybind11_include = pybind11.get_include()
+
+# C++ source files
+sources = [
+    'src/cpp/fingerprinter/fft.cpp',
+    'src/cpp/fingerprinter/peaks.cpp',
+    'src/cpp/fingerprinter/fingerprint.cpp',
+    'src/cpp/bindings/bindings.cpp'
+]
+
+# Check if peaks.cpp and fingerprint.cpp files exist, if not create empty ones
+for source_file in ['src/cpp/fingerprinter/peaks.cpp', 'src/cpp/fingerprinter/fingerprint.cpp']:
+    if not os.path.exists(source_file):
+        os.makedirs(os.path.dirname(source_file), exist_ok=True)
+        with open(source_file, 'w') as f:
+            f.write(f'#include "{os.path.basename(source_file).replace(".cpp", ".h")}"\n\n')
+            f.write('namespace audiofp {\n\n// Implementation will go here\n\n}  // namespace audiofp\n')
+
+# Compiler flags
+extra_compile_args = []
+if sys.platform == 'darwin':  # macOS
+    extra_compile_args += ['-std=c++14', '-stdlib=libc++']
+elif sys.platform == 'win32':  # Windows
+    extra_compile_args += ['/std:c++14']
+else:  # Linux and others
+    extra_compile_args += ['-std=c++14']
+
+# Define the extension module
+ext_modules = [
+    Extension(
+        'audiofp_core',
+        sources=sources,
+        include_dirs=[
+            'src/cpp/fingerprinter',
+            pybind11_include,
+        ],
+        language='c++',
+        extra_compile_args=extra_compile_args,
+    ),
+]
+
+# Custom build extension command
+class BuildExt(build_ext):
+    def build_extensions(self):
+        # Ensure all directories exist
+        for ext in self.extensions:
+            for source in ext.sources:
+                dir_name = os.path.dirname(source)
+                if not os.path.exists(dir_name):
+                    os.makedirs(dir_name, exist_ok=True)
+        
+        # Continue with the standard build
+        build_ext.build_extensions(self)
+
+setup(
+    name="audio-fingerprinter",
+    version="0.1.0",
+    packages=find_packages(),
+    ext_modules=ext_modules,
+    cmdclass={'build_ext': BuildExt},
+    install_requires=[
+        'numpy',
+        'librosa',
+        'flask',
+        'pybind11>=2.6.0',
+    ],
+    python_requires='>=3.7',
+    author="Your Name",
+    author_email="your.email@example.com",
+    description="Audio fingerprinting service similar to Shazam",
+    keywords="audio, fingerprinting, music recognition",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: C++",
+    ],
+)
