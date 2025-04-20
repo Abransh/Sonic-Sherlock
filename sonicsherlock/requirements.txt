@@ -1,0 +1,14 @@
+# Core dependencies
+numpy>=1.20.0
+scipy>=1.6.0
+librosa>=0.8.0
+pybind11>=2.6.0
+
+# Web interface
+flask>=2.0.0
+werkzeug>=2.0.0
+gunicorn>=20.1.0
+
+# Development tools
+pytest>=6.2.5
+black>=21.5b2
